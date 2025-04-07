@@ -7,9 +7,13 @@
 *.dll
 *.so
 *.dylib
+bin/
 
 # Test binary, built with `go test -c`
 *.test
+
+# Coverage
+coverage.html
 
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
@@ -22,4 +26,8 @@ go.work
 go.work.sum
 
 # env file
-.env
+.env*
+
+# OS metadata
+.DS_Store
+Thumbs.db
