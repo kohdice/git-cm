@@ -2,7 +2,10 @@ module github.com/kohdice/git-cm
 
 go 1.24.2
 
-require github.com/go-git/go-git/v5 v5.14.0
+require (
+	github.com/go-git/go-git/v5 v5.14.0
+	gopkg.in/ini.v1 v1.67.0
+)
 
 require (
 	dario.cat/mergo v1.0.0 // indirect
