@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+
 	"github.com/charmbracelet/bubbles/textarea"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
@@ -260,4 +262,31 @@ func (m *commitModel) View() string {
 	}
 	s += commitButton + "    " + quitButton + "\n"
 	return s
+}
+
+// runTUI starts the TUI and returns a CommitMessage constructed
+// from the final state of the TUI, or an error if something goes wrong.
+// If the user chooses to quit, it returns errQuit.
+func runTUI() (*CommitMessage, error) {
+	m := newCommitModel()
+	p := tea.NewProgram(m)
+	final, err := p.Run()
+	if err != nil {
+		return nil, fmt.Errorf("error starting program: %w", err)
+	}
+
+	model, ok := final.(*commitModel)
+	if !ok {
+		return nil, fmt.Errorf("type assertion failed")
+	}
+
+	if model.quitSelected {
+		return nil, errQuit
+	}
+
+	return &CommitMessage{
+		Prefix:      model.prefixOptions[model.currentPrefixIndex],
+		Summary:     model.summary.Value(),
+		Description: model.desc.Value(),
+	}, nil
 }
