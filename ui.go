@@ -34,7 +34,7 @@ type commitModel struct {
 // newCommitModel initializes and returns a new commitModel.
 func newCommitModel() *commitModel {
 	m := &commitModel{
-		prefixOptions:      []string{"feat", "fix", "refactor"},
+		prefixOptions:      []string{"feat", "fix", "refactor", "test", "style", "chore", "docs"},
 		currentPrefixIndex: 0,
 		focusIndex:         0,
 		prefixDropdownOpen: false,
