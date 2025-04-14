@@ -1,4 +1,7 @@
 BIN := ./bin/git-cm
+ifeq ($(OS),Windows_NT)
+BIN := $(BIN).exe
+endif
 CURRENT_COMMIT := $(shell git rev-parse --short HEAD)
 GIT_DIRTY := $(shell if [ -n "$$(git status --porcelain)" ]; then echo "-dirty"; fi)
 CURRENT_REVISION := $(CURRENT_COMMIT)$(GIT_DIRTY)
