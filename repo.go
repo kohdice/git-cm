@@ -10,6 +10,13 @@ import (
 	"github.com/go-git/go-git/v5/plumbing/object"
 )
 
+// commitMessage is a struct that holds the fields for a commit message.
+type commitMessage struct {
+	Prefix      string
+	Summary     string
+	Description string
+}
+
 // findRepoRoot searches upward from the current working directory until it finds
 // the root of a Git repository (i.e. a directory containing a ".git" folder).
 func findRepoRoot() (string, error) {
@@ -46,7 +53,7 @@ func openRepo(dir string) (*git.Repository, error) {
 
 // commitRepo commits changes in the repository using the provided commit message and author information.
 // It returns the commit hash as a string or an error if something fails.
-func commitRepo(r *git.Repository, a author, m *CommitMessage) (string, error) {
+func commitRepo(r *git.Repository, a author, m *commitMessage) (string, error) {
 	msg := fmt.Sprintf("%s: %s\n\n%s", m.Prefix, m.Summary, m.Description)
 
 	wt, err := r.Worktree()

@@ -9,13 +9,6 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-// CommitMessage is a struct that holds the fields for a commit message.
-type CommitMessage struct {
-	Prefix      string
-	Summary     string
-	Description string
-}
-
 // commitModel is the model that holds the state of the TUI.
 // (Note) Focus indexes:
 //
@@ -268,7 +261,7 @@ func (m *commitModel) View() string {
 // runTUI starts the TUI and returns a CommitMessage constructed
 // from the final state of the TUI, or an error if something goes wrong.
 // If the user chooses to quit, it returns errQuit.
-func runTUI() (*CommitMessage, error) {
+func runTUI() (*commitMessage, error) {
 	m := newCommitModel()
 	p := tea.NewProgram(m)
 	final, err := p.Run()
@@ -285,7 +278,7 @@ func runTUI() (*CommitMessage, error) {
 		return nil, errQuit
 	}
 
-	return &CommitMessage{
+	return &commitMessage{
 		Prefix:      model.prefixOptions[model.currentPrefixIndex],
 		Summary:     model.summary.Value(),
 		Description: model.desc.Value(),

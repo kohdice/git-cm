@@ -172,14 +172,14 @@ func TestOpenRepo(t *testing.T) {
 func TestCommitRepo(t *testing.T) {
 	tests := []struct {
 		name           string
-		msg            CommitMessage
+		msg            commitMessage
 		setupRepo      func(repoDir string, repo *git.Repository) error
 		expectErr      bool
 		expectedSubstr string
 	}{
 		{
 			name: "Successful commit",
-			msg: CommitMessage{
+			msg: commitMessage{
 				Prefix:      "feat",
 				Summary:     "A new feature",
 				Description: "Detailed description of the feature.",
@@ -201,7 +201,7 @@ func TestCommitRepo(t *testing.T) {
 		},
 		{
 			name: "Worktree error",
-			msg: CommitMessage{
+			msg: commitMessage{
 				Prefix:      "fix",
 				Summary:     "A bugfix",
 				Description: "Fixing a critical bug.",
@@ -215,7 +215,7 @@ func TestCommitRepo(t *testing.T) {
 		},
 		{
 			name: "Empty commit error",
-			msg: CommitMessage{
+			msg: commitMessage{
 				Prefix:      "docs",
 				Summary:     "Documentation update",
 				Description: "No changes made.",
