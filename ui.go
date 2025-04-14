@@ -60,7 +60,8 @@ func newCommitModel() *commitModel {
 	// Initialize the text area for Description (allows multi-line input).
 	ta := textarea.New()
 	ta.SetWidth(50)
-	ta.SetHeight(5)
+	ta.SetHeight(3)
+	ta.ShowLineNumbers = false
 	m.desc = ta
 
 	return m
