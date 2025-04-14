@@ -47,11 +47,11 @@ Commit messages must follow one of the following types:
 
 - **feat**: A new feature
 - **fix**: A bug fix
-- **docs**: Documentation only changes
-- **style**: Changes that do not affect the meaning of the code (e.g., white-space, formatting, missing semi-colons)
 - **refactor**: A code change that neither fixes a bug nor adds a feature
 - **test**: Adding missing or correcting existing tests
+- **style**: Changes that do not affect the meaning of the code (e.g., white-space, formatting, missing semi-colons)
 - **chore**: Changes to the build process or auxiliary tools and libraries such as documentation generation
+- **docs**: Documentation only changes
 
 ## Code of Conduct
 
