@@ -2,7 +2,7 @@ BIN := ./bin/git-cm
 CURRENT_COMMIT := $(shell git rev-parse --short HEAD)
 GIT_DIRTY := $(shell if [ -n "$$(git status --porcelain)" ]; then echo "-dirty"; fi)
 CURRENT_REVISION := $(CURRENT_COMMIT)$(GIT_DIRTY)
-BUILD_LDFLAGS := "-s -w -X main.version=development -X main.revision=$(CURRENT_REVISION)"
+BUILD_LDFLAGS := "-s -w -X main.version=v0.0.0 -X main.revision=$(CURRENT_REVISION)"
 
 .PHONY: all
 all: clean tidy check build
