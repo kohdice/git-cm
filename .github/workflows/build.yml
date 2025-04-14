@@ -32,8 +32,7 @@ jobs:
         with:
           go-version-file: go.mod
       - name: Build
-        run: |
-          CGO_ENABLED=0 go build -trimpath -ldflags="-s -w -X main.version=v0.1.0 -X main.revision=HEAD" -o git-cm .
+        run: make build
   build_for_macos:
     if: github.event.pull_request.draft == false
     runs-on: macos-latest
@@ -49,8 +48,7 @@ jobs:
         with:
           go-version-file: go.mod
       - name: Build
-        run: |
-          CGO_ENABLED=0 go build -trimpath -ldflags="-s -w -X main.version=v0.0.0 -X main.revision=HEAD" -o git-cm .
+        run: make build
   build_for_windows:
     if: github.event.pull_request.draft == false
     runs-on: windows-latest
@@ -64,5 +62,4 @@ jobs:
         with:
           go-version-file: go.mod
       - name: Build
-        run: |
-          CGO_ENABLED=0 go build -trimpath -ldflags="-s -w -X main.version=v0.0.0 -X main.revision=HEAD" -o git-cm.exe .
+        run: make build
