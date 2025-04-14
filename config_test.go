@@ -41,14 +41,15 @@ func TestLoadGlobalConfig(t *testing.T) {
 				if err == nil {
 					t.Error("expected error, but got nil")
 				}
-			} else {
-				if err != nil {
-					t.Errorf("unexpected error: %v", err)
-				}
+				return
+			}
 
-				if cfg == nil {
-					t.Error("expected non-nil config")
-				}
+			if err != nil {
+				t.Errorf("unexpected error: %v", err)
+			}
+
+			if cfg == nil {
+				t.Error("expected non-nil config")
 			}
 		})
 	}
@@ -96,23 +97,23 @@ func TestLoadGlobalAuthor(t *testing.T) {
 				t.Fatalf("failed to write .gitconfig: %v", err)
 			}
 
-			name, email, err := loadGlobalAuthor()
+			aut, err := loadGlobalAuthor()
 			if tt.expectError {
 				if err == nil {
 					t.Error("expected error but got nil")
 				}
-			} else {
-				if err != nil {
-					t.Errorf("unexpected error: %v", err)
-				}
+				return
+			}
 
-				if name != tt.expectedName {
-					t.Errorf("expected name %q, got %q", tt.expectedName, name)
-				}
+			if err != nil {
+				t.Errorf("unexpected error: %v", err)
+			}
 
-				if email != tt.expectedEmail {
-					t.Errorf("expected email %q, got %q", tt.expectedEmail, email)
-				}
+			if aut.Name != tt.expectedName {
+				t.Errorf("expected name %q, got %q", tt.expectedName, aut.Name)
+			}
+			if aut.Email != tt.expectedEmail {
+				t.Errorf("expected email %q, got %q", tt.expectedEmail, aut.Email)
 			}
 		})
 	}
@@ -134,12 +135,10 @@ func TestGetAuthorInfo(t *testing.T) {
 				if err != nil {
 					t.Fatalf("failed to open repository: %v", err)
 				}
-
 				cfg, err := repo.Config()
 				if err != nil {
 					t.Fatalf("failed to get repository config: %v", err)
 				}
-
 				cfg.User.Name = "RepoUser"
 				cfg.User.Email = "repo@example.com"
 				if err := repo.Storer.SetConfig(cfg); err != nil {
@@ -152,18 +151,16 @@ func TestGetAuthorInfo(t *testing.T) {
 			expectError:         false,
 		},
 		{
-			name: "FallbackToGlobal",
-			repoSetup: func(t *testing.T, repoDir string) {
-			},
+			name:                "FallbackToGlobal",
+			repoSetup:           func(t *testing.T, repoDir string) {},
 			globalConfigContent: "[user]\nname = GlobalUser\nemail = global@example.com\n",
 			expectedName:        "GlobalUser",
 			expectedEmail:       "global@example.com",
 			expectError:         false,
 		},
 		{
-			name: "FallbackFailsDueToInvalidGlobalConfig",
-			repoSetup: func(t *testing.T, repoDir string) {
-			},
+			name:                "FallbackFailsDueToInvalidGlobalConfig",
+			repoSetup:           func(t *testing.T, repoDir string) {},
 			globalConfigContent: "",
 			expectError:         true,
 		},
@@ -179,7 +176,6 @@ func TestGetAuthorInfo(t *testing.T) {
 
 			globalHome := t.TempDir()
 			t.Setenv("HOME", globalHome)
-
 			cfgPath := filepath.Join(globalHome, ".gitconfig")
 			if err := os.WriteFile(cfgPath, []byte(tt.globalConfigContent), 0644); err != nil {
 				t.Fatalf("failed to write global .gitconfig: %v", err)
@@ -189,23 +185,24 @@ func TestGetAuthorInfo(t *testing.T) {
 				tt.repoSetup(t, repoDir)
 			}
 
-			name, email, err := getAuthorInfo(repo)
+			aut, err := getAuthorInfo(repo)
 			if tt.expectError {
 				if err == nil {
 					t.Error("expected error but got nil")
 				}
-			} else {
-				if err != nil {
-					t.Errorf("unexpected error: %v", err)
-				}
+				return
+			}
 
-				if name != tt.expectedName {
-					t.Errorf("expected name %q, got %q", tt.expectedName, name)
-				}
+			if err != nil {
+				t.Errorf("unexpected error: %v", err)
+			}
 
-				if email != tt.expectedEmail {
-					t.Errorf("expected email %q, got %q", tt.expectedEmail, email)
-				}
+			if aut.Name != tt.expectedName {
+				t.Errorf("expected name %q, got %q", tt.expectedName, aut.Name)
+			}
+
+			if aut.Email != tt.expectedEmail {
+				t.Errorf("expected email %q, got %q", tt.expectedEmail, aut.Email)
 			}
 		})
 	}
