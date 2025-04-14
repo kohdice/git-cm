@@ -169,6 +169,53 @@ func TestOpenRepo(t *testing.T) {
 	}
 }
 
+func TestCheckStagedFiles(t *testing.T) {
+	t.Run("Has staged files", func(t *testing.T) {
+		repoDir := t.TempDir()
+
+		repo, err := git.PlainInit(repoDir, false)
+		if err != nil {
+			t.Fatalf("failed to init repo: %v", err)
+		}
+
+		dummyFile := filepath.Join(repoDir, "file.txt")
+		if err := os.WriteFile(dummyFile, []byte("hello"), 0644); err != nil {
+			t.Fatalf("failed to write file: %v", err)
+		}
+
+		wt, err := repo.Worktree()
+		if err != nil {
+			t.Fatalf("failed to get worktree: %v", err)
+		}
+
+		if _, err := wt.Add("file.txt"); err != nil {
+			t.Fatalf("failed to stage file: %v", err)
+		}
+
+		if err := checkStagedFiles(wt); err != nil {
+			t.Errorf("expected no error for staged file, got: %v", err)
+		}
+	})
+
+	t.Run("No staged files", func(t *testing.T) {
+		repoDir := t.TempDir()
+
+		repo, err := git.PlainInit(repoDir, false)
+		if err != nil {
+			t.Fatalf("failed to init repo: %v", err)
+		}
+
+		wt, err := repo.Worktree()
+		if err != nil {
+			t.Fatalf("failed to get worktree: %v", err)
+		}
+
+		if err := checkStagedFiles(wt); err == nil {
+			t.Error("expected error for no staged files, got nil")
+		}
+	})
+}
+
 func TestCommitRepo(t *testing.T) {
 	tests := []struct {
 		name           string
@@ -253,8 +300,10 @@ func TestCommitRepo(t *testing.T) {
 			if tc.expectErr {
 				if err == nil {
 					t.Errorf("expected error, but got none; commitHash=%q", commitHash)
-				} else if !strings.Contains(err.Error(), "failed") && !strings.Contains(err.Error(), "empty commit") {
-					t.Errorf("expected an error containing 'failed' or 'empty commit', but got: %v", err)
+				} else if !strings.Contains(err.Error(), "failed") &&
+					!strings.Contains(err.Error(), "empty commit") &&
+					!strings.Contains(err.Error(), "no files are staged") {
+					t.Errorf("expected an error containing 'failed', 'empty commit', or 'no files are staged', but got: %v", err)
 				}
 				return
 			}

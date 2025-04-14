@@ -51,15 +51,36 @@ func openRepo(dir string) (*git.Repository, error) {
 	return repo, nil
 }
 
-// commitRepo commits changes in the repository using the provided commit message and author information.
-// It returns the commit hash as a string or an error if something fails.
-func commitRepo(r *git.Repository, a author, m *commitMessage) (string, error) {
-	msg := fmt.Sprintf("%s: %s\n\n%s", m.Prefix, m.Summary, m.Description)
+// checkStagedFiles checks if there are any staged files in the repository.
+// If no staged files are found, it returns an error.
+func checkStagedFiles(wt *git.Worktree) error {
+	status, err := wt.Status()
+	if err != nil {
+		return fmt.Errorf("failed to get status: %w", err)
+	}
 
+	for _, s := range status {
+		if s.Staging != git.Unmodified {
+			return nil
+		}
+	}
+
+	return fmt.Errorf("no files are staged")
+}
+
+// commitRepo commits changes using the provided commit message and author information.
+// It returns the commit hash or an error.
+func commitRepo(r *git.Repository, a author, m *commitMessage) (string, error) {
 	wt, err := r.Worktree()
 	if err != nil {
 		return "", fmt.Errorf("failed to get worktree: %w", err)
 	}
+
+	if err := checkStagedFiles(wt); err != nil {
+		return "", err
+	}
+
+	msg := fmt.Sprintf("%s: %s\n\n%s", m.Prefix, m.Summary, m.Description)
 
 	h, err := wt.Commit(msg, &git.CommitOptions{
 		Author: &object.Signature{
