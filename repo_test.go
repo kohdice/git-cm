@@ -1,11 +1,15 @@
 package main
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
+	"time"
 
 	"github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/plumbing/object"
 )
 
 func TestFindRepoRoot(t *testing.T) {
@@ -160,6 +164,130 @@ func TestOpenRepo(t *testing.T) {
 
 			if repo == nil && !tt.wantErr {
 				t.Errorf("expected non-nil repository for valid directory")
+			}
+		})
+	}
+}
+
+func TestCommitRepo(t *testing.T) {
+	tests := []struct {
+		name           string
+		msg            CommitMessage
+		setupRepo      func(repoDir string, repo *git.Repository) error
+		expectErr      bool
+		expectedSubstr string
+	}{
+		{
+			name: "Successful commit",
+			msg: CommitMessage{
+				Prefix:      "feat",
+				Summary:     "A new feature",
+				Description: "Detailed description of the feature.",
+			},
+			setupRepo: func(repoDir string, repo *git.Repository) error {
+				dummyFile := filepath.Join(repoDir, "dummy.txt")
+				if err := os.WriteFile(dummyFile, []byte("dummy content"), 0644); err != nil {
+					return fmt.Errorf("failed to write dummy file: %w", err)
+				}
+				wt, err := repo.Worktree()
+				if err != nil {
+					return fmt.Errorf("failed to get worktree: %w", err)
+				}
+				_, err = wt.Add("dummy.txt")
+				return err
+			},
+			expectErr:      false,
+			expectedSubstr: "feat: A new feature",
+		},
+		{
+			name: "Worktree error",
+			msg: CommitMessage{
+				Prefix:      "fix",
+				Summary:     "A bugfix",
+				Description: "Fixing a critical bug.",
+			},
+			setupRepo: func(repoDir string, repo *git.Repository) error {
+				gitPath := filepath.Join(repoDir, ".git")
+				return os.RemoveAll(gitPath)
+			},
+			expectErr:      true,
+			expectedSubstr: "",
+		},
+		{
+			name: "Empty commit error",
+			msg: CommitMessage{
+				Prefix:      "docs",
+				Summary:     "Documentation update",
+				Description: "No changes made.",
+			},
+			setupRepo:      nil,
+			expectErr:      true,
+			expectedSubstr: "",
+		},
+	}
+
+	author := author{
+		Name:  "Tester",
+		Email: "tester@example.com",
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			repoDir, err := os.MkdirTemp("", "testrepo")
+			if err != nil {
+				t.Fatalf("failed to create temp directory: %v", err)
+			}
+			defer os.RemoveAll(repoDir) // nolint:errcheck
+
+			repo, err := git.PlainInit(repoDir, false)
+			if err != nil {
+				t.Fatalf("failed to initialize git repository: %v", err)
+			}
+
+			if tc.setupRepo != nil {
+				if err := tc.setupRepo(repoDir, repo); err != nil {
+					t.Fatalf("setupRepo failed: %v", err)
+				}
+			}
+
+			commitHash, err := commitRepo(repo, author, &tc.msg)
+			if tc.expectErr {
+				if err == nil {
+					t.Errorf("expected error, but got none; commitHash=%q", commitHash)
+				} else if !strings.Contains(err.Error(), "failed") && !strings.Contains(err.Error(), "empty commit") {
+					t.Errorf("expected an error containing 'failed' or 'empty commit', but got: %v", err)
+				}
+				return
+			}
+
+			if err != nil {
+				t.Errorf("unexpected error: %v", err)
+			}
+
+			if commitHash == "" {
+				t.Error("expected non-empty commit hash")
+			}
+
+			time.Sleep(100 * time.Millisecond)
+
+			commits, err := repo.Log(&git.LogOptions{})
+			if err != nil {
+				t.Fatalf("failed to get commit log: %v", err)
+			}
+			defer commits.Close()
+
+			found := false
+			err = commits.ForEach(func(c *object.Commit) error {
+				if strings.Contains(c.Message, tc.expectedSubstr) {
+					found = true
+				}
+				return nil
+			})
+			if err != nil {
+				t.Fatalf("error iterating commits: %v", err)
+			}
+
+			if !found && tc.expectedSubstr != "" {
+				t.Errorf("expected commit log to contain %q, but it did not", tc.expectedSubstr)
 			}
 		})
 	}
