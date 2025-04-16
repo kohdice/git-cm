@@ -1,8 +1,8 @@
 BIN := ./bin/git-cm
-CURRENT_COMMIT := $(shell git rev-parse --short HEAD)
-GIT_DIRTY := $(shell if [ -n "$$(git status --porcelain)" ]; then echo "-dirty"; fi)
-CURRENT_REVISION := $(CURRENT_COMMIT)$(GIT_DIRTY)
-BUILD_LDFLAGS := "-s -w -X main.version=development -X main.revision=$(CURRENT_REVISION)"
+ifeq ($(OS),Windows_NT)
+BIN := $(BIN).exe
+endif
+BUILD_LDFLAGS := "-s -w"
 
 .PHONY: all
 all: clean tidy check build
@@ -10,6 +10,10 @@ all: clean tidy check build
 .PHONY: build
 build:
 	CGO_ENABLED=0 go build -trimpath -ldflags=$(BUILD_LDFLAGS) -o $(BIN) .
+
+.PHONY: install
+install:
+	CGO_ENABLED=0 go install -trimpath -ldflags=$(BUILD_LDFLAGS) .
 
 .PHONY: clean
 clean:

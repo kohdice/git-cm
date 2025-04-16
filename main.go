@@ -1,12 +1,21 @@
 package main
 
-import "fmt"
-
-var (
-	version  = "v0.0.1"
-	revision = "HEAD"
+import (
+	"flag"
+	"fmt"
+	"os"
 )
 
+var version = "v0.0.1"
+
 func main() {
-	fmt.Printf("%s (rev %s)", version, revision)
+	showVersion := flag.Bool("version", false, "Show version")
+	flag.Parse()
+
+	if *showVersion {
+		fmt.Println(version)
+		os.Exit(0)
+	}
+
+	os.Exit(doCommit())
 }
